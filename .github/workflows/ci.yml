@@ -1,0 +1,50 @@
+name: CI
+
+on:
+    push:
+        tags:
+            - "[0-9]+.[0-9]+.[0-9]+"
+        branches:
+            - main
+            - next
+    pull_request:
+        branches:
+            - main
+            - next
+
+jobs:
+    CI:
+        runs-on: ubuntu-latest
+        steps:
+            - run: echo "${{ github.actor }}"
+
+            - uses: actions/checkout@v3
+
+            - name: Use Node.js 14.x
+              uses: actions/setup-node@v3
+              with:
+                  node-version: 14
+                  registry-url: "https://registry.npmjs.org"
+                  cache: "yarn" # https://github.com/actions/setup-node/blob/main/docs/advanced-usage.md#caching-packages-dependencies
+
+            - run: yarn install
+
+            - name: Build
+              run: yarn build
+
+            - name: Lint
+              run: |
+                  yarn exec prettier -c .
+                  yarn lint
+
+            - name: Publish Canary release
+              if: ${{ github.ref_name == 'main' || github.ref_name == 'next' }}
+              run: yarn publish:release --canary --preid=canary.${{ github.run_number }} --dist-tag=canary --yes
+              env:
+                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+            - name: Publish stable release
+              if: ${{ github.ref_type == 'tag' }}
+              run: yarn publish:release ${{ github.ref_name }} --yes
+              env:
+                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

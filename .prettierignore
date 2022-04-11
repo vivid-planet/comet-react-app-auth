@@ -1,0 +1,8 @@
+package-lock.json
+.gitignore
+*.lock
+*.dist
+.watchmanconfig
+lib/
+lerna.json
+.yarn/
