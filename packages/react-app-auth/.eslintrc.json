@@ -1,4 +1,27 @@
 {
     "extends": "@comet/eslint-config/react",
-    "ignorePatterns": ["src/*.generated.ts"]
+    "ignorePatterns": ["src/*.generated.ts"],
+    "rules": {
+        "import/no-restricted-paths": [
+            2,
+            {
+                "zones": [
+                    {
+                        "target": "./src",
+                        "from": "./src/index.ts",
+                        "message": "Do not import from root index.ts file. The index.ts file in the root is treated like the public api. To avoid cyclic imports, import from index.ts is restricted"
+                    }
+                ]
+            }
+        ],
+        "no-console": ["error", { "allow": ["warn", "error"] }]
+    },
+    "overrides": [
+        {
+            "files": ["*.stories.ts", "*.stories.tsx", "*.test.ts", "*.test.tsx"],
+            "rules": {
+                "@calm/react-intl/missing-formatted-message": "off"
+            }
+        }
+    ]
 }

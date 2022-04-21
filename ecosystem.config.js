@@ -12,5 +12,11 @@ module.exports = {
             namespace: "comet-react-app-auth",
             autorestart: true,
         },
+        {
+            name: "storybook",
+            script: "npx yarn workspace @comet/react-app-auth-storybook start",
+            namespace: "comet-react-app-auth",
+            autorestart: true,
+        },
     ],
 };
