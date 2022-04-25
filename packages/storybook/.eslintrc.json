@@ -1,0 +1,11 @@
+{
+    "extends": "@comet/eslint-config/react",
+    "overrides": [
+        {
+            "files": ["*.stories.ts", "*.stories.tsx", "*.test.ts", "*.test.tsx"],
+            "rules": {
+                "@calm/react-intl/missing-formatted-message": "off"
+            }
+        }
+    ]
+}
