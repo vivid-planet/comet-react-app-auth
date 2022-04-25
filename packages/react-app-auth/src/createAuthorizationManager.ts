@@ -147,7 +147,6 @@ export const createAuthorizationManager = ({
                                         : AuthorizationRequest.RESPONSE_TYPE_TOKEN,
                                 state: undefined,
                                 extras: mergedAuthConfig.extras,
-                                // extras: environment.extra
                             });
                             authorizationHandler.performAuthorizationRequest(response, authRequest);
                             resolve();
