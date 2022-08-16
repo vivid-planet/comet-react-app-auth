@@ -1,18 +1,17 @@
 import * as React from "react";
 
-import { useAuthorization } from "./authorizationcontext/useAuthorization";
+import { AuthorizationManager } from "./createAuthorizationManager";
 import { UserProfile } from "./types";
 
 /*
  * returns the users profile, decoded from the idToken from the oAuth Process
  * */
-export function useUser(): UserProfile | null {
-    const authorization = useAuthorization();
-    const [user, setUser] = React.useState<UserProfile | null>(authorization?.authorizationManager.state.userProfile ?? null);
+export function useUser(authorizationManager: AuthorizationManager): UserProfile | null {
+    const [user, setUser] = React.useState<UserProfile | null>(authorizationManager.state.userProfile ?? null);
     React.useEffect(() => {
-        const subscription = authorization?.authorizationManager.onOAuthChange(() => {
-            if (authorization?.authorizationManager.state.userProfile != null) {
-                setUser(authorization?.authorizationManager.state.userProfile);
+        const subscription = authorizationManager.onOAuthChange(() => {
+            if (authorizationManager.state.userProfile != null) {
+                setUser(authorizationManager.state.userProfile);
             } else {
                 setUser(null);
             }
@@ -20,6 +19,7 @@ export function useUser(): UserProfile | null {
         return () => {
             subscription?.unsubscribe();
         };
-    }, [authorization]);
+        /* eslint-disable-next-line react-hooks/exhaustive-deps */
+    }, []);
     return user;
 }

@@ -4,9 +4,6 @@ export { createOnErrorRefreshTokenLink } from "./apollo/links/createOnErrorRefre
 export { createRefreshTokenLink } from "./apollo/links/createRefreshTokenLink";
 export { setAuthorizationContext } from "./apollo/links/setAuthorizationContext";
 export { setOAuthContext } from "./apollo/links/setOAuthContext";
-export { AuthorizationProvider } from "./authorizationcontext/AuthorizationProvider";
-export { useAuthorization } from "./authorizationcontext/useAuthorization";
-export { AuthorizationGate } from "./AuthorizationGate";
 export { AuthorizationManager, createAuthorizationManager } from "./createAuthorizationManager";
 export { AuthConfiguration, AuthError } from "./types";
 export { useOAuth } from "./useOAuth";

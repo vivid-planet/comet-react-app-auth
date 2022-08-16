@@ -44,5 +44,6 @@ export function useSetAuthorizationCookies({
         return () => {
             subscription.unsubscribe();
         };
-    }, [accessTokenCookieDomain, accessTokenCookieName, accessTokenCookieOptions, authorizationManager]);
+        /* eslint-disable-next-line react-hooks/exhaustive-deps */
+    }, []);
 }

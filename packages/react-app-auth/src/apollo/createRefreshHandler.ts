@@ -1,3 +1,5 @@
+import { AuthorizationServiceConfiguration, BaseTokenRequestHandler, FetchRequestor, GRANT_TYPE_REFRESH_TOKEN, TokenRequest } from "@openid/appauth";
+
 import { AuthorizationManager } from "../createAuthorizationManager";
 import { OAuthData } from "../OAuthData";
 import { AuthConfiguration } from "../types";
@@ -23,6 +25,32 @@ export interface RefreshHandler {
     startAutomaticRefresh: (checkIntervalInSeconds: number) => void;
     stopAutomaticRefresh: () => void;
 }
+
+const refresh = async (authorizationConfig: AuthConfiguration, authorizationManager: AuthorizationManager) => {
+    const tokenHandler = new BaseTokenRequestHandler(new FetchRequestor());
+
+    if (authorizationManager.state.oAuth?.refreshToken) {
+        const request = new TokenRequest({
+            client_id: authorizationConfig.clientId,
+            redirect_uri: authorizationConfig.redirectUrl,
+            grant_type: GRANT_TYPE_REFRESH_TOKEN,
+            code: undefined,
+            refresh_token: authorizationManager.state.oAuth.refreshToken,
+            extras: undefined,
+        });
+        try {
+            const configuration = await AuthorizationServiceConfiguration.fetchFromIssuer(authorizationConfig.issuer, new FetchRequestor());
+            const tokenResponse = await tokenHandler.performTokenRequest(configuration, request);
+            await authorizationManager.saveOAuth(tokenResponse);
+            return tokenResponse;
+        } catch (error) {
+            console.error("Error", error);
+            throw new Error(`can not refresh Token - error occured${JSON.stringify(error)}`);
+        }
+    }
+
+    throw new Error("can not refresh Token because there is no refresh_token");
+};
 
 /**
  * The RefreshHandler knows if an access token - refresh is currently in progress.
@@ -69,8 +97,8 @@ export const createRefreshHandler = (authorizationManager: AuthorizationManager)
 
     const refreshAccessToken = (authorizationConfig: AuthConfiguration, onOAuthRefreshedCallback: (oAuth: OAuthData) => void) => {
         setIsRefreshing(true);
-        const refreshPromise = authorizationManager.refresh();
 
+        const refreshPromise = refresh(authorizationConfig, authorizationManager);
         refreshPromise
             .then((refreshedOAuth) => {
                 if (refreshedOAuth.refreshToken) {

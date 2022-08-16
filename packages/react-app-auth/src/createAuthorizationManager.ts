@@ -5,7 +5,6 @@ import {
     BaseTokenRequestHandler,
     DefaultCrypto,
     FetchRequestor,
-    GRANT_TYPE_REFRESH_TOKEN,
     LocalStorageBackend,
     RedirectRequestHandler,
     RevokeTokenRequest,
@@ -30,20 +29,9 @@ export interface AuthorizationManager {
     onOAuthChange: (next: (value: OAuthData | null) => void) => Subscription;
     saveOAuth: (oauth: OAuthData | null) => Promise<void>;
     signOut: () => Promise<void>;
-    refresh: () => Promise<OAuthData>;
-    isProcessingToken: (location: Location) => boolean;
 }
 
-export interface CreateAuthorizationManagerOptions {
-    authorizationConfig: AuthConfiguration;
-    isProcessingToken?: (location: Location) => boolean;
-}
-export const createAuthorizationManager = ({
-    authorizationConfig,
-    isProcessingToken = (location) => {
-        return window.location.href.startsWith(authorizationConfig.redirectUrl ?? "");
-    },
-}: CreateAuthorizationManagerOptions): AuthorizationManager => {
+export const createAuthorizationManager = (authorizationConfig: AuthConfiguration): AuthorizationManager => {
     const state: AuthorizationManager["state"] = {
         oAuth: null,
         userProfile: null,
@@ -115,7 +103,7 @@ export const createAuthorizationManager = ({
     });
 
     // if redirect url matches configuration and code parameter is available then go further with the authorization process
-    if (isProcessingToken(window.location)) {
+    if (window.location.toString().startsWith(authorizationConfig.redirectUrl)) {
         const params = new URLSearchParams(window.location.search);
         if (params.get("code")) {
             try {
@@ -211,34 +199,5 @@ export const createAuthorizationManager = ({
             await saveOAuth(null);
             signOutSubject.next();
         },
-        refresh: async () => {
-            return new Promise<OAuthData>((resolve, reject) => {
-                if (state.oAuth?.refreshToken) {
-                    const request = new TokenRequest({
-                        client_id: authorizationConfig.clientId,
-                        redirect_uri: authorizationConfig.redirectUrl,
-                        grant_type: GRANT_TYPE_REFRESH_TOKEN,
-                        code: undefined,
-                        refresh_token: state.oAuth.refreshToken,
-                        extras: undefined,
-                    });
-                    AuthorizationServiceConfiguration.fetchFromIssuer(authorizationConfig.issuer, new FetchRequestor())
-                        .then((response) => {
-                            return tokenHandler.performTokenRequest(response, request);
-                        })
-                        .then((response) => {
-                            saveOAuth(response);
-                            resolve(response);
-                        })
-                        .catch((error) => {
-                            console.error("Error", error);
-                            reject(`can not refresh Token - error occured${JSON.stringify(error)}`);
-                        });
-                } else {
-                    reject("can not refresh Token because there is no refresh_token");
-                }
-            });
-        },
-        isProcessingToken: isProcessingToken,
     };
 };

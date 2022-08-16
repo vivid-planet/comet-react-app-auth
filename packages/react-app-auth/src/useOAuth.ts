@@ -1,28 +1,25 @@
 import * as React from "react";
 
-import { useAuthorization } from "./authorizationcontext/useAuthorization";
+import { AuthorizationManager } from "./createAuthorizationManager";
 import { OAuthData } from "./OAuthData";
 
 /*
  * returns the stored oAuth information
  * */
-export function useOAuth(): OAuthData | null {
-    const authorization = useAuthorization();
-
+export function useOAuth(authorizationManager: AuthorizationManager): OAuthData | null {
     const [oAuth, setOAuth] = React.useState<OAuthData | null>(null);
     React.useEffect(() => {
-        const subscription = authorization?.authorizationManager.onOAuthChange(() => {
-            if (authorization?.authorizationManager.state.oAuth != null) {
-                setOAuth(authorization?.authorizationManager.state.oAuth);
+        const subscription = authorizationManager.onOAuthChange(() => {
+            if (authorizationManager.state.oAuth != null) {
+                setOAuth(authorizationManager.state.oAuth);
             } else {
                 setOAuth(null);
             }
         });
         return () => {
-            if (subscription) {
-                subscription.unsubscribe();
-            }
+            subscription.unsubscribe();
         };
-    }, [authorization]);
+        /* eslint-disable-next-line react-hooks/exhaustive-deps */
+    }, []);
     return oAuth;
 }
